@@ -1,0 +1,45 @@
+{
+  "name": "sidetracker",
+  "version": "1.0.0",
+  "description": "Screenshots your screen every minute, discards anything sensitive using a local model, and nudges you when you get sidetracked.",
+  "main": "src/main.js",
+  "author": "SideTracker",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "icon": "node build/make-icon.js",
+    "dist": "node build/make-icon.js && electron-builder --win"
+  },
+  "build": {
+    "appId": "com.sidetracker.app",
+    "productName": "SideTracker",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "build/icon.png",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.png",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "SideTracker-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "SideTracker-${version}-portable.${ext}"
+    }
+  },
+  "devDependencies": {
+    "electron": "^45.0.0",
+    "electron-builder": "^26.15.3"
+  }
+}

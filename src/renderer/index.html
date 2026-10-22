@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'">
+  <title>SideTracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div>
+      <h1>SideTracker</h1>
+      <p class="sub">Watches for drift. Deletes anything sensitive on-device first.</p>
+    </div>
+    <div class="controls">
+      <span id="state" class="pill">Paused</span>
+      <button id="check" class="ghost">Check now</button>
+      <button id="toggle" class="primary">Start</button>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <h2>Focus</h2>
+      <label for="goal">What are you supposed to be working on?</label>
+      <input id="goal" type="text" placeholder="e.g. Coding with Claude Code">
+      <div class="row">
+        <div>
+          <label for="threshold">Notify me after (minutes off-task)</label>
+          <input id="threshold" type="number" min="1" max="240">
+        </div>
+        <div>
+          <label for="interval">Screenshot every (seconds)</label>
+          <input id="interval" type="number" min="15" max="600">
+        </div>
+        <div>
+          <label for="cooldown">Don't nag more than once per (min)</label>
+          <input id="cooldown" type="number" min="1" max="480">
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>On-device privacy model</h2>
+      <p class="hint">Every screenshot is checked locally first. If it looks sensitive it is dropped and never uploaded. If the local model can't run, nothing is uploaded either.</p>
+      <div id="tiers"></div>
+      <p id="ollamaNote" class="hint"></p>
+    </section>
+
+    <section>
+      <h2>OpenAI</h2>
+      <div class="row">
+        <div class="grow">
+          <label for="key">API key <span id="keyState" class="muted"></span></label>
+          <div class="inline">
+            <input id="key" type="password" placeholder="sk-..." autocomplete="off">
+            <button id="saveKey" class="ghost">Save</button>
+            <button id="clearKey" class="ghost">Remove</button>
+          </div>
+        </div>
+        <div>
+          <label for="model">Model</label>
+          <input id="model" type="text">
+        </div>
+      </div>
+      <p class="hint">Stored encrypted with Windows DPAPI. Only screenshots that passed the local check are sent.</p>
+    </section>
+
+    <section>
+      <h2>App</h2>
+      <label class="check"><input id="autoStart" type="checkbox"> Start tracking automatically when the app opens</label>
+      <label class="check"><input id="launchAtLogin" type="checkbox"> Launch SideTracker when I sign in to Windows</label>
+    </section>
+
+    <section>
+      <h2>Activity</h2>
+      <p class="hint">Descriptions only. Screenshots are never saved to disk.</p>
+      <ul id="log"></ul>
+    </section>
+  </main>
+  <script src="renderer.js"></script>
+</body>
+</html>
