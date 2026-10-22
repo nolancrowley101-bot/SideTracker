@@ -8,7 +8,8 @@
   "scripts": {
     "start": "electron .",
     "icon": "node build/make-icon.js",
-    "dist": "node build/make-icon.js && electron-builder --win"
+    "predist": "node build/make-icon.js",
+    "dist": "electron-builder --win"
   },
   "build": {
     "appId": "com.sidetracker.app",
