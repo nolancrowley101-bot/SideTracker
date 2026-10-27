@@ -15,7 +15,7 @@ Sensitive means ANY of:
 
 If you are unsure, say it is sensitive. Ordinary content (code editors without secrets, documentation, videos, games, social feeds, web pages, desktops) is not sensitive.
 
-Reply with ONLY JSON: {"sensitive": true|false, "reason": "<max 12 words, no copied secrets>"}`;
+Reply with ONLY JSON: {"sensitive": true|false, "reason": "<max 8 words, no copied secrets>"}`;
 
 const join = (base, p) => base.replace(/\/+$/, '') + p;
 
@@ -96,7 +96,9 @@ async function classify(cfg, jpeg) {
       format: 'json',
       think: false, // skip reasoning tokens on thinking-capable models; we only need the JSON verdict
       keep_alive: '10m',
-      options: { temperature: 0 },
+      // The verdict is a few dozen tokens and the prompt + image fit easily in 2k,
+      // so cap both: decoding and KV allocation are slow on CPU.
+      options: { temperature: 0, num_predict: 80, num_ctx: 2048 },
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: 'Is this screenshot sensitive?', images: [jpeg.toString('base64')] }

@@ -1,6 +1,8 @@
 const { desktopCapturer, screen } = require('electron');
+const frames = require('./frames');
 
-// Captures the display the cursor is currently on and returns a JPEG Buffer.
+// Captures the display the cursor is currently on and returns { jpeg, fp }:
+// a JPEG Buffer plus a tiny fingerprint used to detect an unchanged screen.
 // The image only ever lives in memory: it is written nowhere, so a screenshot
 // flagged as sensitive is "deleted" simply by being dropped.
 async function captureScreen(maxWidth = 1600) {
@@ -14,7 +16,8 @@ async function captureScreen(maxWidth = 1600) {
 
   let img = source.thumbnail;
   if (img.getSize().width > maxWidth) img = img.resize({ width: maxWidth, quality: 'good' });
-  return img.toJPEG(70);
+  const small = img.resize({ width: frames.W, height: frames.H, quality: 'good' });
+  return { jpeg: img.toJPEG(70), fp: frames.fingerprint(small.toBitmap()) };
 }
 
 module.exports = { captureScreen };

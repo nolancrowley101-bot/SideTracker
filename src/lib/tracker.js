@@ -3,8 +3,12 @@ const config = require('./config');
 const { captureScreen } = require('./capture');
 const ollama = require('./ollama');
 const openai = require('./openai');
+const frames = require('./frames');
 
 const HISTORY_SIZE = 8;
+// An unchanged screen reuses the last verdict, but never for longer than this,
+// so a slow change (e.g. typing into a form) is still re-checked.
+const MAX_REUSE_MS = 5 * 60 * 1000;
 
 class Tracker extends EventEmitter {
   constructor() {
@@ -15,6 +19,7 @@ class Tracker extends EventEmitter {
     this.history = []; // conclusive readings only: { activity, onTask, at }
     this.offTaskSince = null;
     this.lastNotified = 0;
+    this.last = null; // { fp, checkedAt, goal, model, verdict, result }
     this.log = []; // what the UI shows; descriptions only, never images
   }
 
@@ -76,10 +81,24 @@ class Tracker extends EventEmitter {
     const cfg = config.load();
 
     let jpeg = null;
+    let fp = null;
     try {
-      jpeg = await captureScreen();
+      ({ jpeg, fp } = await captureScreen());
     } catch (err) {
       return this.addLog({ kind: 'error', text: `Capture failed: ${err.message}` });
+    }
+
+    const model = cfg.models[cfg.tier];
+    const prev = this.last;
+    const unchanged =
+      prev && prev.goal === cfg.goal && prev.model === model && Date.now() - prev.checkedAt < MAX_REUSE_MS && frames.similar(prev.fp, fp);
+
+    if (unchanged) {
+      jpeg = null;
+      if (prev.verdict.sensitive) {
+        return this.addLog({ kind: 'deleted', text: `Sensitive, screenshot deleted (screen unchanged${prev.verdict.reason ? `: ${prev.verdict.reason}` : ''})` });
+      }
+      if (prev.result) return this.applyResult(cfg, prev.result);
     }
 
     // 1) Local on-device check. If it cannot run, the screenshot is dropped,
@@ -90,8 +109,11 @@ class Tracker extends EventEmitter {
       verdict = await ollama.classify(cfg, jpeg);
     } catch (err) {
       jpeg = null;
+      this.last = null;
       return this.addLog({ kind: 'error', text: `Local check failed, screenshot discarded: ${err.message}` });
     }
+
+    this.last = { fp, checkedAt: Date.now(), goal: cfg.goal, model, verdict, result: null };
 
     if (verdict.sensitive) {
       jpeg = null;
@@ -108,6 +130,11 @@ class Tracker extends EventEmitter {
       jpeg = null;
     }
 
+    this.last.result = result;
+    this.applyResult(cfg, result);
+  }
+
+  applyResult(cfg, result) {
     this.history.push({ activity: result.activity, onTask: result.onTask, at: Date.now() });
     if (this.history.length > HISTORY_SIZE) this.history.shift();
 
