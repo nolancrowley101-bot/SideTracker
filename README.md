@@ -36,4 +36,4 @@ npm start
 npm run dist
 ```
 
-Outputs an installer and a portable exe to `dist/` (built for the machine's architecture, e.g. arm64 on Windows on ARM).
+Outputs an installer and a portable exe to `dist/`, built for the machine's architecture. Pushing a `v*` tag runs `.github/workflows/release.yml`, which builds x64 (Intel/AMD) and arm64 exes and attaches them to the GitHub release.

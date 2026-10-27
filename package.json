@@ -1,6 +1,6 @@
 {
   "name": "sidetracker",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Screenshots your screen every minute, discards anything sensitive using a local model, and nudges you when you get sidetracked.",
   "main": "src/main.js",
   "author": "SideTracker",
@@ -33,10 +33,10 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "artifactName": "SideTracker-Setup-${version}.${ext}"
+      "artifactName": "SideTracker-Setup-${version}-${arch}.${ext}"
     },
     "portable": {
-      "artifactName": "SideTracker-${version}-portable.${ext}"
+      "artifactName": "SideTracker-${version}-portable-${arch}.${ext}"
     }
   },
   "devDependencies": {
